@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "outDir": "../lib",
+    "rootDir": ".",
+    "tsBuildInfoFile": "../.src.tsbuildinfo"
+  },
+  "extends": "../../tsconfigbase",
+  "include": ["./**/*"],
+  "references": [{ "path": "../../jupikchr/src" }]
+}

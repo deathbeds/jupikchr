@@ -1,0 +1,14 @@
+__pycache__/
+_d/
+.cache/
+.ipynb_checkpoints/
+.venv/
+.yarn-packages/
+*.doit.db
+*.log
+*.tsbuildinfo
+build/
+dist/
+examples/pikchr/
+lib/
+node_modules/

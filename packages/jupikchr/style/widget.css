@@ -1,0 +1,11 @@
+.jp-PikchrWidget {
+  display: flex;
+  flex: 1;
+  overflow: auto;
+}
+
+.jp-PikchrWidget > svg,
+.jp-PikchrWidget > img {
+  flex: 1;
+  overflow: auto;
+}

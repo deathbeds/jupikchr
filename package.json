@@ -1,0 +1,222 @@
+{
+  "private": true,
+  "scripts": {
+    "build:ext": "lerna run labextension:build",
+    "build:lib": "lerna run build",
+    "dist:npm": "lerna run dist:npm",
+    "dist:py": "flit build",
+    "docs:lite": "cd examples && jupyter lite build && jupyter lite doit -- pre_archive:report:SHA256SUMS",
+    "docs:sphinx": "sphinx-build -b html docs build/docs",
+    "fix:js:package": "prettier-package-json --write package.json \"packages/*/package.json\"",
+    "fix:js:prettier": "jlpm prettier:base --write --list-different",
+    "fix:py:black": "black --quiet dodo.py src docs",
+    "fix:py:isort": "isort dodo.py src docs",
+    "fix:py:ssort": "ssort dodo.py src docs",
+    "install:dedupe": "jlpm --prefer-offline --ignore-optional --registry=https://registry.npmjs.org && yarn-deduplicate -s fewer --fail",
+    "py:setup": "jlpm py:setup:pip && jlpm py:steup:ext",
+    "py:setup:ext": "jupyter labextension develop . --overwrite && jupyter labextension list 2>&1 > build/labextensions.txt",
+    "py:setup:pip": "python -m pip install -e . --no-deps --ignore-installed --no-build-isolation && pip list --format=freeze > build/pip-freeze.txt",
+    "prettier:base": "prettier --cache --cache-location=build/.prettiercache \"{.,packages/**,.binder,.github/**,docs/**}/*.{js,md,json,ts,css,yml}\"",
+    "watch": "lerna run --parallel --stream watch"
+  },
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.39.0",
+    "@typescript-eslint/parser": "^5.39.0",
+    "lerna": "^6.0.3",
+    "prettier": "^2.8.0",
+    "prettier-package-json": "^2.7.0",
+    "prettier-plugin-sort-json": "~0.0.3",
+    "source-map-loader": "^4.0.1",
+    "ts-node": "^10.9.1",
+    "typescript": "~4.9.3",
+    "yarn-deduplicate": "^6.0.0"
+  },
+  "doit": {
+    "tasks": {
+      "docs:lite": {
+        "file_dep": [
+          {
+            "ref": "py:setup:ext/targets"
+          },
+          {
+            "ref": "dist:py/targets"
+          },
+          "examples/pikchr/SHA256SUMS",
+          "examples/*.json"
+        ],
+        "targets": [
+          "build/lite/SHA256SUMS"
+        ]
+      },
+      "docs:sphinx": {
+        "file_dep": [
+          "docs/*.md",
+          "README.md",
+          "CHANGELOG.md",
+          "examples/pikchr/SHA256SUMS",
+          "packages/jupikchr/style/img/alpha-p-box.svg",
+          {
+            "ref": "docs:lite/targets"
+          }
+        ],
+        "targets": [
+          "build/docs/.buildinfo"
+        ]
+      },
+      "dist:npm": {
+        "file_dep": [
+          "packages/_meta/.src.tsbuildinfo",
+          "packages/*/*.md",
+          "packages/*/*.json",
+          "packages/*/.npmignore",
+          {
+            "ref": "dist:py/targets"
+          }
+        ],
+        "targets": [
+          {
+            "template": "dist/deathbeds-jupikchr-{{ D.JS_VERSION }}.tgz"
+          }
+        ]
+      },
+      "dist:py": {
+        "file_dep": [
+          {
+            "ref": "build:ext/targets"
+          },
+          "README.md",
+          "LICENSE.txt",
+          "pyproject.toml"
+        ],
+        "targets": [
+          {
+            "template": "dist/jupikchr-{{ D.PY_VERSION }}.tar.gz"
+          },
+          {
+            "template": "dist/jupikchr-{{ D.PY_VERSION }}-py3-none-any.whl"
+          }
+        ]
+      },
+      "py:setup:pip": {
+        "file_dep": [
+          "pyproject.toml",
+          {
+            "ref": "build:ext/targets"
+          }
+        ],
+        "targets": [
+          "build/pip-freeze.txt"
+        ]
+      },
+      "py:setup:ext": {
+        "file_dep": [
+          "build/pip-freeze.txt"
+        ],
+        "targets": [
+          "build/labextensions.txt"
+        ]
+      },
+      "fix:js:package": {
+        "file_dep": [
+          "package.json",
+          "packages/*/package.json",
+          "node_modules/.yarn-integrity"
+        ],
+        "targets": []
+      },
+      "fix:py:black": {
+        "file_dep": [
+          "dodo.py",
+          "src/jupikchr/**/*.py",
+          "pyproject.toml"
+        ],
+        "task_dep": [
+          "js:fix:py:isort"
+        ],
+        "targets": []
+      },
+      "fix:py:isort": {
+        "file_dep": [
+          {
+            "ref": "fix:py:black/file_dep"
+          }
+        ],
+        "task_dep": [
+          "js:fix:py:ssort"
+        ],
+        "targets": []
+      },
+      "fix:py:ssort": {
+        "file_dep": [
+          {
+            "ref": "fix:py:black/file_dep"
+          }
+        ],
+        "targets": []
+      },
+      "install:dedupe": {
+        "file_dep": [
+          "package.json",
+          "packages/*/package.json"
+        ],
+        "targets": [
+          "node_modules/.yarn-integrity"
+        ]
+      },
+      "build:lib": {
+        "file_dep": [
+          "node_modules/.yarn-integrity",
+          "packages/*/src/**/*.ts",
+          "packages/*/*.json",
+          "packages/*/src/**/*.json"
+        ],
+        "targets": [
+          "packages/_meta/.src.tsbuildinfo"
+        ]
+      },
+      "build:ext": {
+        "file_dep": [
+          {
+            "ref": "build:lib/file_dep"
+          },
+          {
+            "ref": "build:lib/targets"
+          },
+          "packages/*/*.js"
+        ],
+        "targets": [
+          "src/jupikchr/_d/share/jupyter/labextensions/@deathbeds/jupikchr/package.json"
+        ]
+      },
+      "fix:js:prettier": {
+        "file_dep": [
+          {
+            "ref": "build:lib/file_dep"
+          },
+          "packages/*/*.json",
+          "packages/*/*.md",
+          ".binder/*",
+          ".github/**/*",
+          "*.json",
+          "*.md"
+        ],
+        "targets": [
+          "build/.prettiercache"
+        ],
+        "task_dep": [
+          "js:fix:js:package"
+        ]
+      }
+    }
+  },
+  "prettier": {
+    "singleQuote": true,
+    "proseWrap": "always",
+    "printWidth": 88
+  }
+}

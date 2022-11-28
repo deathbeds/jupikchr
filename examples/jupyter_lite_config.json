@@ -1,0 +1,23 @@
+{
+  "LiteBuildConfig": {
+    "piplite_urls": [
+      "../dist"
+    ],
+    "output_dir": "../build/lite",
+    "contents": [
+      "."
+    ],
+    "extra_file_types": {
+      "pikchr": {
+        "name": "pikchr",
+        "extensions": [
+          ".pikchr"
+        ],
+        "mimetypes": [
+          "text/plain"
+        ],
+        "fileFormat": "text"
+      }
+    }
+  }
+}

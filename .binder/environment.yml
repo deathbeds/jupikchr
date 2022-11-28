@@ -1,0 +1,32 @@
+name: jupikchr
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  # build
+  - nodejs >=18,<19
+  - python >=3.8,<3.12
+  - doit-with-toml
+  - flit
+  # lab
+  - ipydrawio
+  - ipywidgets
+  - jupyterlab >=3.5,<4.0
+  - jupyterlab-myst
+  - jupyterlab-deck
+  - jupyterlab-webrtc-docprovider
+  # lint
+  - black
+  - docformatter
+  - isort
+  - pydocstyle
+  - ssort
+  # docs
+  - pydata-sphinx-theme
+  - myst-nb
+  - sphinx-copybutton
+  # lite
+  - pkginfo
+  - pip
+  - pip:
+      - jupyterlite ==0.1.0b14

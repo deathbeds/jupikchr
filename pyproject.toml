@@ -1,0 +1,51 @@
+[build-system]
+requires = ["flit_core >=3.7.1,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "jupikchr"
+version = "0.1.0"
+description = "pikchr text-based diagrams for JupyterLab, etc."
+authors = [
+    {name = "jupikchr contributors", email = "deathbeds@googlegroups.com"},
+]
+readme = "README.md"
+classifiers = [
+    "Framework :: Jupyter :: JupyterLab :: 3",
+    "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt",
+    "Framework :: Jupyter :: JupyterLab :: Extensions",
+    "Framework :: Jupyter :: JupyterLab",
+    "Framework :: Jupyter",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3",
+]
+requires-python = ">=3.7"
+dependencies = [
+    "ipywidgets >=7,<9",
+    "jupyterlab >=3.3,<4",
+    "jupyterlab-markup >=2.0.0",
+]
+
+[project.urls]
+"Bug Tracker" = "https://github.com/deathbeds/jupikchr/issues"
+"Changelog" = "https://github.com/deathbeds/jupikchr/blob/main/CHANGELOG.md"
+"Documentation" = "https://jupikchr.rtfd.io"
+"Source" = "https://github.com/deathbeds/jupikchr"
+
+[tool.flit.sdist]
+include = ["src/jupikchr/_d"]
+
+[tool.flit.module]
+name = "jupikchr"
+
+[tool.flit.external-data]
+directory = "src/jupikchr/_d"
+
+[tool.doit]
+backend = "sqlite3"
+verbosity = 2
+
+[tool.doit.commands.list]
+status = true
+subtasks = true

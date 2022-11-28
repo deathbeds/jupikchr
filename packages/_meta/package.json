@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "name": "@deathbeds/jupikchr-metapackage",
+  "version": "0.1.0",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc -b src",
+    "watch": "jlpm build -w --preserveWatchOutput"
+  },
+  "types": "lib/index.d.ts",
+  "dependencies": {
+    "@deathbeds/jupikchr": "file:../jupikchr"
+  }
+}
