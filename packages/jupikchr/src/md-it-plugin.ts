@@ -1,6 +1,6 @@
 import type MarkdownIt from 'markdown-it';
-import { render } from './render';
 
+import { render } from './render';
 import { LANGS } from './tokens';
 
 export function renderPikchrMarkdownIt(md: MarkdownIt): void {

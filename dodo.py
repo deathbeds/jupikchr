@@ -8,6 +8,7 @@ import tempfile
 import time
 import urllib.request
 import zipfile
+from collections import defaultdict
 from pathlib import Path
 
 import doit.tools
@@ -174,30 +175,45 @@ class U:  # tilities
             print(output)
         hashfile.write_text(output)
 
+    def make_js_prefix_tasks(prefix, tasks):
+        def _task():
+            for name, task in tasks.items():
+                full_task = dict(
+                    name=name,
+                    actions=[
+                        (doit.tools.create_folder, [B.DIST]),
+                        (doit.tools.create_folder, [B.BUILD]),
+                        ["jlpm", f"{prefix}:{name}"],
+                    ],
+                    **task,
+                )
+
+                for path_key in ["file_dep", "targets"]:
+                    full_task[path_key] = U.expand_paths(full_task[path_key])
+
+                yield full_task
+
+        _task.__doc__ = f"run `package.json#/scripts/{prefix}`"
+        return _task
+
+    def load_package_json_tasks():
+        js_grouped = defaultdict(lambda: defaultdict(dict))
+
+        for name, js_task in D.JS_TASKS.items():
+            bits = name.split(":")
+            js_grouped[bits[0]][":".join(bits[1:])] = js_task
+
+        tasks = {}
+        for prefix, js_tasks in js_grouped.items():
+            tasks[f"task_{prefix}"] = U.make_js_prefix_tasks(prefix, js_tasks)
+        return tasks
+
 
 class E:  # env
     SOURCE_DATE_EPOCH = U.source_date_epoch()
 
 
 os.environ.update(SOURCE_DATE_EPOCH=E.SOURCE_DATE_EPOCH)
-
-
-def task_js():
-    for task_name, task in D.JS_TASKS.items():
-        full_task = dict(
-            name=f"{task_name}",
-            actions=[
-                (doit.tools.create_folder, [B.DIST]),
-                (doit.tools.create_folder, [B.BUILD]),
-                ["jlpm", task_name],
-            ],
-            **task,
-        )
-
-        for path_key in ["file_dep", "targets"]:
-            full_task[path_key] = U.expand_paths(full_task[path_key])
-
-        yield full_task
 
 
 def task_examples():
@@ -232,9 +248,9 @@ def task_examples():
     )
 
 
-def task_docs():
+def task_copy():
     yield dict(
-        name="copy:icon",
+        name="icon",
         file_dep=[P.ICON],
         targets=[P.DOCS_ICON],
         actions=[(U.copy_one, [P.ICON, P.DOCS_ICON])],
@@ -258,7 +274,7 @@ def task_binder():
         """
             )
         ],
-        task_dep=["js:py:setup:ext", "examples"],
+        task_dep=["setup", "examples"],
     )
 
 
@@ -273,3 +289,6 @@ def task_dist():
         file_dep=file_dep,
         actions=[(U.hash_files, [B.SHA256SUMS, B.DIST, file_dep])],
     )
+
+
+globals().update(U.load_package_json_tasks())

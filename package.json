@@ -5,17 +5,16 @@
     "build:lib": "lerna run build",
     "dist:npm": "lerna run dist:npm",
     "dist:py": "flit build",
-    "docs:lite": "cd examples && jupyter lite build && jupyter lite doit -- pre_archive:report:SHA256SUMS",
     "docs:sphinx": "sphinx-build -b html docs build/docs",
     "fix:js:package": "prettier-package-json --write package.json \"packages/*/package.json\"",
     "fix:js:prettier": "jlpm prettier:base --write --list-different",
     "fix:py:black": "black --quiet dodo.py src docs",
     "fix:py:isort": "isort dodo.py src docs",
     "fix:py:ssort": "ssort dodo.py src docs",
-    "install:dedupe": "jlpm --prefer-offline --ignore-optional --registry=https://registry.npmjs.org && yarn-deduplicate -s fewer --fail",
-    "py:setup": "jlpm py:setup:pip && jlpm py:steup:ext",
-    "py:setup:ext": "jupyter labextension develop . --overwrite && jupyter labextension list 2>&1 > build/labextensions.txt",
-    "py:setup:pip": "python -m pip install -e . --no-deps --ignore-installed --no-build-isolation && pip list --format=freeze > build/pip-freeze.txt",
+    "lite:build": "cd examples && jupyter lite build && jupyter lite doit -- pre_archive:report:SHA256SUMS",
+    "setup:js": "jlpm --prefer-offline --ignore-optional --registry=https://registry.npmjs.org && yarn-deduplicate -s fewer --fail",
+    "setup:py:ext": "jupyter labextension develop . --overwrite && jupyter labextension list 2>&1 > build/labextensions.txt",
+    "setup:py:pip": "python -m pip install -e . --no-deps --ignore-installed --no-build-isolation && pip list --format=freeze > build/pip-freeze.txt",
     "prettier:base": "prettier --cache --cache-location=build/.prettiercache \"{.,packages/**,.binder,.github/**,docs/**}/*.{js,md,json,ts,css,yml}\"",
     "watch": "lerna run --parallel --stream watch"
   },
@@ -25,6 +24,7 @@
     ]
   },
   "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^4.0.0",
     "@typescript-eslint/eslint-plugin": "^5.39.0",
     "@typescript-eslint/parser": "^5.39.0",
     "lerna": "^6.0.3",
@@ -38,10 +38,10 @@
   },
   "doit": {
     "tasks": {
-      "docs:lite": {
+      "lite:build": {
         "file_dep": [
           {
-            "ref": "py:setup:ext/targets"
+            "ref": "setup:py:ext/targets"
           },
           {
             "ref": "dist:py/targets"
@@ -61,7 +61,7 @@
           "examples/pikchr/SHA256SUMS",
           "packages/jupikchr/style/img/alpha-p-box.svg",
           {
-            "ref": "docs:lite/targets"
+            "ref": "lite:build/targets"
           }
         ],
         "targets": [
@@ -102,7 +102,7 @@
           }
         ]
       },
-      "py:setup:pip": {
+      "setup:py:pip": {
         "file_dep": [
           "pyproject.toml",
           {
@@ -113,7 +113,7 @@
           "build/pip-freeze.txt"
         ]
       },
-      "py:setup:ext": {
+      "setup:py:ext": {
         "file_dep": [
           "build/pip-freeze.txt"
         ],
@@ -136,7 +136,7 @@
           "pyproject.toml"
         ],
         "task_dep": [
-          "js:fix:py:isort"
+          "fix:py:isort"
         ],
         "targets": []
       },
@@ -147,7 +147,7 @@
           }
         ],
         "task_dep": [
-          "js:fix:py:ssort"
+          "fix:py:ssort"
         ],
         "targets": []
       },
@@ -159,7 +159,7 @@
         ],
         "targets": []
       },
-      "install:dedupe": {
+      "setup:js": {
         "file_dep": [
           "package.json",
           "packages/*/package.json"
@@ -209,7 +209,7 @@
           "build/.prettiercache"
         ],
         "task_dep": [
-          "js:fix:js:package"
+          "fix:js:package"
         ]
       }
     }
@@ -217,6 +217,17 @@
   "prettier": {
     "singleQuote": true,
     "proseWrap": "always",
-    "printWidth": 88
+    "printWidth": 88,
+    "importOrder": [
+      "^@lumino/(.*)$",
+      "^@jupyterlab/(.*)$",
+      "^@jupyter-widgets/(.*)$",
+      "^@agoose77/(.*)$",
+      "^@deathbeds/(.*)$",
+      "^[.]{2}/",
+      "^[./]"
+    ],
+    "importOrderSeparation": true,
+    "importOrderSortSpecifiers": true
   }
 }

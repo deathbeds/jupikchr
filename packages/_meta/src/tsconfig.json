@@ -6,5 +6,8 @@
   },
   "extends": "../../tsconfigbase",
   "include": ["./**/*"],
-  "references": [{ "path": "../../jupikchr/src" }]
+  "references": [
+    { "path": "../../jupikchr/src" },
+    { "path": "../../codemirror-pikchr" }
+  ]
 }

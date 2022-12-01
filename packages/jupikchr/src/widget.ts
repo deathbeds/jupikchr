@@ -1,8 +1,8 @@
 import type { IBackboneModelOptions } from '@jupyter-widgets/base';
 import { DOMWidgetModel, DOMWidgetView, WidgetView } from '@jupyter-widgets/base';
 
-import { NS, VERSION, CSS } from './tokens';
 import { render } from './render';
+import { CSS, NS, VERSION } from './tokens';
 
 export class PikchrView extends DOMWidgetView {
   initialize(parameters: WidgetView.IInitializeParameters<PikchrModel>): void {

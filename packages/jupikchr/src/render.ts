@@ -1,13 +1,13 @@
-import {
-  JP_UI_FONT_FAMILY,
-  RE_VIEWBOX,
-  PIKCHR_DARK_MODE,
-  TPikchrFormat,
-} from './tokens';
+import pikchrWasm from 'pikchr-wasm';
 
 import { PromiseDelegate } from '@lumino/coreutils';
 
-import pikchrWasm from 'pikchr-wasm';
+import {
+  JP_UI_FONT_FAMILY,
+  PIKCHR_DARK_MODE,
+  RE_VIEWBOX,
+  TPikchrFormat,
+} from './tokens';
 
 let initializing: PromiseDelegate<void> | null = null;
 

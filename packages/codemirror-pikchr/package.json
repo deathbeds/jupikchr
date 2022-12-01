@@ -1,0 +1,24 @@
+{
+  "name": "@deathbeds/codemirror-pikchr",
+  "version": "0.1.1",
+  "description": "CodeMirror syntax highlithing for pikchr text-based diagrams",
+  "license": "BSD-3-Clause",
+  "author": "jupikchr contributors",
+  "homepage": "https://github.com/deathbeds/jupikchr",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/deathbeds/jupikchr.git"
+  },
+  "bugs": {
+    "url": "https://github.com/deathbeds/jupikchr/issues"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "dependencies": {
+    "codemirror": "^5.61.0"
+  },
+  "devDependencies": {
+    "@jupyterlab/codemirror": "^3.0.5",
+    "@types/codemirror": "^0.0.109"
+  }
+}

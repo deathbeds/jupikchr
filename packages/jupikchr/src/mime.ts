@@ -1,9 +1,10 @@
 import { Widget } from '@lumino/widgets';
 
 import { IRenderMime } from '@jupyterlab/rendermime-interfaces';
-import { NAME, NS, CSS } from './tokens';
 
 import '../style/index.css';
+
+import { CSS, DOT_PIKCHR, NAME, NS } from './tokens';
 
 export const MIME_TYPE = 'text/x-pikchr';
 
@@ -60,10 +61,11 @@ const mimePlugin: IRenderMime.IExtension = {
   fileTypes: [
     {
       name: NAME,
-      extensions: ['.pikchr'],
+      extensions: [DOT_PIKCHR],
       mimeTypes: [MIME_TYPE],
       fileFormat: 'text',
       iconClass: CSS.ICON,
+      displayName: NAME,
     },
   ],
   documentWidgetFactoryOptions: {

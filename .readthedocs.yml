@@ -5,9 +5,9 @@ build:
     python: mambaforge-4.10
   jobs:
     pre_build:
-      - doit js:py:setup:ext
+      - doit setup
       - doit examples
-      - doit js:docs:lite
+      - doit lite
 sphinx:
   builder: html
   configuration: docs/conf.py

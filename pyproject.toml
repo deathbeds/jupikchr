@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "jupikchr"
-version = "0.1.0"
+version = "0.1.1"
 description = "pikchr text-based diagrams for JupyterLab, etc."
 authors = [
     {name = "jupikchr contributors", email = "deathbeds@googlegroups.com"},
