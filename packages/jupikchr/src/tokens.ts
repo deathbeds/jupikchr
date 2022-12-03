@@ -23,11 +23,12 @@ export type TPikchrFormat = 'img' | 'svg';
 
 export const NAME = 'Pikchr';
 
-export const LAUNCHER_CATEGORY = NAME;
-export const PALETTE_CATEGORY = NAME;
+export const PALETTE_CATEGORY = 'Text Editor';
+
+export const LAUNCHER_CATEGORY = 'Other';
+
+export const DOT_PIKCHR = '.pikchr';
 
 export namespace CommandIDs {
   export const createNew = 'pikchr:create-new';
 }
-
-export const DOT_PIKCHR = '.pikchr';
