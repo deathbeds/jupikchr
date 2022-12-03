@@ -25,8 +25,6 @@
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.0.0",
-    "@typescript-eslint/eslint-plugin": "^5.39.0",
-    "@typescript-eslint/parser": "^5.39.0",
     "lerna": "^6.0.3",
     "prettier": "^2.8.0",
     "prettier-package-json": "^2.7.0",
@@ -74,6 +72,8 @@
           "packages/*/*.md",
           "packages/*/*.json",
           "packages/*/.npmignore",
+          "packages/*/README.md",
+          "packages/*/LICENSE.txt",
           {
             "ref": "dist:py/targets"
           }
@@ -173,7 +173,8 @@
           "node_modules/.yarn-integrity",
           "packages/*/src/**/*.ts",
           "packages/*/*.json",
-          "packages/*/src/**/*.json"
+          "packages/*/src/**/*.json",
+          "packages/jupikchr/src/_pikchr_urls.ts"
         ],
         "targets": [
           "packages/_meta/.src.tsbuildinfo"

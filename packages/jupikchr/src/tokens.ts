@@ -14,12 +14,8 @@ export namespace CSS {
   export const WIDGET = 'jp-PikchrWidget';
   export const DOCUMENT = 'jp-PikchrDocument';
   export const CONTEXT_SELECTOR = 'jp-DirListing-content';
+  export const FIT = 'jp-pikchr-mod-fit';
 }
-
-/* Include PIKCHR_DARK_MODE among the mFlag bits to invert colors. */
-export const PIKCHR_DARK_MODE = 0x0002;
-
-export type TPikchrFormat = 'img' | 'svg';
 
 export const NAME = 'Pikchr';
 
@@ -31,4 +27,6 @@ export const DOT_PIKCHR = '.pikchr';
 
 export namespace CommandIDs {
   export const createNew = 'pikchr:create-new';
+  export const fit = 'pikchr:fit';
+  export const img = 'pikchr:img';
 }

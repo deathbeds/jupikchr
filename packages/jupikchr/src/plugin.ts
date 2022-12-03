@@ -1,18 +1,24 @@
 import type MarkdownIt from 'markdown-it';
 
-import { JupyterFrontEnd, JupyterFrontEndPlugin } from '@jupyterlab/application';
-import { ICommandPalette } from '@jupyterlab/apputils';
+import {
+  IMimeDocumentTracker,
+  JupyterFrontEnd,
+  JupyterFrontEndPlugin,
+} from '@jupyterlab/application';
+import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
 import { ICodeMirror } from '@jupyterlab/codemirror';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
+import { imageIcon } from '@jupyterlab/ui-components';
 
 import { ExportMap, IJupyterWidgetRegistry } from '@jupyter-widgets/base';
 
 import { simpleMarkdownItPlugin } from '@agoose77/jupyterlab-markup';
 
 import { ICONS } from './icons';
+import { RenderedPikchr } from './mime';
 import {
   CSS,
   CommandIDs,
@@ -23,6 +29,7 @@ import {
   PALETTE_CATEGORY,
   VERSION,
 } from './tokens';
+import { PikchrDocumentToolbar } from './toolbar';
 
 export interface IMdItPlugin {
   (md: MarkdownIt): void;
@@ -59,8 +66,6 @@ export const markdownPlugin = simpleMarkdownItPlugin(NS, {
       return [cachedPlugin];
     }
 
-    const { initialize } = await import('./render');
-    await initialize();
     const { renderPikchrMarkdownIt } = await import('./md-it-plugin');
     let loadedPlugin = (_PLUGIN = renderPikchrMarkdownIt);
     return [loadedPlugin];
@@ -76,8 +81,6 @@ const widgetPlugin: JupyterFrontEndPlugin<void> = {
       name: NS,
       version: VERSION,
       exports: async () => {
-        const { initialize } = await import('./render');
-        await initialize();
         return (await import('./widget')) as ExportMap;
       },
     };
@@ -101,14 +104,22 @@ const modePlugin: JupyterFrontEndPlugin<void> = {
 const filePlugin: JupyterFrontEndPlugin<void> = {
   id: `${NS}:file`,
   autoStart: true,
-  optional: [ITranslator, IFileBrowserFactory, ILauncher, IMainMenu, ICommandPalette],
+  optional: [
+    ITranslator,
+    IFileBrowserFactory,
+    ILauncher,
+    IMainMenu,
+    ICommandPalette,
+    IMimeDocumentTracker,
+  ],
   activate: (
     app: JupyterFrontEnd,
     translator?: ITranslator,
     browserFactory?: IFileBrowserFactory,
     launcher?: ILauncher,
     menu?: IMainMenu,
-    palette?: ICommandPalette
+    palette?: ICommandPalette,
+    mime?: IMimeDocumentTracker
   ) => {
     const { commands, contextMenu } = app;
 
@@ -143,6 +154,37 @@ const filePlugin: JupyterFrontEndPlugin<void> = {
       selector: CSS.CONTEXT_SELECTOR,
       rank: 3,
     });
+
+    function getRenderer(): RenderedPikchr | null {
+      if (!mime) {
+        return null;
+      }
+      const { currentWidget } = mime;
+      if (!(currentWidget && currentWidget instanceof MainAreaWidget)) {
+        return null;
+      }
+      const { renderer } = currentWidget.content;
+      if (!(renderer && renderer instanceof RenderedPikchr)) {
+        return null;
+      }
+      return renderer;
+    }
+
+    if (mime) {
+      commands.addCommand(CommandIDs.fit, {
+        icon: ICONS.FIT,
+        caption: trans.__('Toggle fit to container'),
+        execute: async (args: any) => getRenderer()?.toggleFit(),
+      });
+      commands.addCommand(CommandIDs.img, {
+        icon: imageIcon,
+        caption: trans.__('Toggle image rendering'),
+        execute: async (args: any) => getRenderer()?.toggleImage(),
+      });
+      const toolbar = new PikchrDocumentToolbar(commands);
+
+      app.docRegistry.addWidgetExtension(NAME, toolbar);
+    }
 
     // add to the launcher
     if (launcher) {

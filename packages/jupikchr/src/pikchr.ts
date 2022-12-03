@@ -1,76 +1,186 @@
-import pikchrWasm from 'pikchr-wasm';
-
+/** A wrapper class for the pikchr worker */
 import { PromiseDelegate } from '@lumino/coreutils';
 
-import {
-  JP_UI_FONT_FAMILY,
-  PIKCHR_DARK_MODE,
-  RE_VIEWBOX,
-  TPikchrFormat,
-} from './tokens';
+import * as URLS from './_pikchr_urls';
+import { JP_UI_FONT_FAMILY } from './tokens';
 
-let initializing: PromiseDelegate<void> | null = null;
+class _Pikchr implements Pikchr.IPikchr {
+  private _ready = new PromiseDelegate<void>();
+  private _renderPromises = new Map<
+    string,
+    PromiseDelegate<Pikchr.IRenderResponseData>
+  >();
 
-export async function initialize(): Promise<void> {
-  if (initializing) {
-    return initializing.promise;
+  constructor(options?: Pikchr.IOptions) {
+    // nothing here yet
   }
-  initializing = new PromiseDelegate();
-  await pikchrWasm.loadWASM();
-  initializing.resolve(void 0);
-}
 
-export interface IOptions {
-  tag?: TPikchrFormat;
-  dark?: boolean;
-}
+  async render(options: Pikchr.IRenderOptions): Promise<string> {
+    let { _worker } = this;
 
-export function render(content: string, options: IOptions = {}): string {
-  let { dark, tag } = options;
-  if (dark == null) {
-    dark = document.body.dataset.jpThemeLight === 'false';
-  }
-  const flags = dark ? PIKCHR_DARK_MODE : 0;
-
-  let result = pikchrWasm.render(content.trim(), 'pikchr', flags);
-
-  if (result.includes('<svg')) {
-    // sanitize
-    switch (options.tag) {
-      case undefined:
-      case null:
-      case 'img':
-        result = `${HEADER}${result}`;
-        const fontFamily = getComputedStyle(document.body).getPropertyValue(
-          JP_UI_FONT_FAMILY
-        );
-        // defaults to serif, re-use the current lab stack
-        result = result.replace(
-          '</svg>',
-          `<style>text { font-family: ${fontFamily}; }</style></svg>`
-        );
-        const viewBox = result.match(RE_VIEWBOX);
-        const styles = [];
-        let dimensions = '';
-        if (viewBox != null) {
-          styles.push(`max-width:${viewBox[3]}px`, `max-height:${viewBox[4]}px`);
-          dimensions = `height="${viewBox[3]}" height="${viewBox[4]}"`;
-        }
-        // markdown-it strips svg
-        result = `<img
-              class="pikchr"
-              ${dimensions}
-              style="${styles.join(';')}"
-              src="${`data:image/svg+xml,${encodeURIComponent(result)}`}"
-            />`;
-        break;
-      case 'svg':
-        break;
-      default:
-        result = `<pre>Can't render as <${tag}></pre>`;
+    if (!_worker) {
+      this._worker = _worker = new Worker(URLS.WORKER_JS_URL.default);
+      _worker.onmessage = this.onMessage;
     }
+
+    await this._ready.promise;
+
+    let promise = this._renderPromises.get(options.pikchr);
+
+    if (promise == null) {
+      promise = new PromiseDelegate<Pikchr.IRenderResponseData>();
+      this._renderPromises.set(options.pikchr, promise);
+      this.postMessage({
+        type: 'pikchr',
+        data: {
+          ...options,
+          ...(options.darkMode == null
+            ? {
+                darkMode: document.body.dataset.jpThemeLight === 'false',
+              }
+            : {}),
+        },
+      });
+    }
+
+    const response = await promise.promise;
+
+    if (options.tag === 'img') {
+      return this.transformToImg(response);
+    }
+
+    return response.result;
   }
-  return result;
+
+  transformToImg(data: Pikchr.IRenderResponseData): string {
+    let { result } = data;
+    const match = data.result.match(/(<svg[\s\S]*svg>)/m);
+    if (match == null) {
+      return result;
+    }
+    result = `${HEADER}${match[1]}`;
+    const fontFamily = getComputedStyle(document.body).getPropertyValue(
+      JP_UI_FONT_FAMILY
+    );
+    result = result.replace(
+      '</svg>',
+      `<style>text { font-family: ${fontFamily}; }</style></svg>`
+    );
+    const styles = [];
+    let dimensions = '';
+    styles.push(`max-width:${data.width}px`, `max-height:${data.height}px`);
+    dimensions = `height="${data.width}" height="${data.height}"`;
+    // markdown-it strips svg
+    result = `<img
+          class="pikchr"
+          ${dimensions}
+          style="${styles.join(';')}"
+          src="${`data:image/svg+xml,${encodeURIComponent(result)}`}"
+        />`;
+    return result;
+  }
+
+  postMessage(message: Pikchr.IMessage) {
+    this._worker!.postMessage(message);
+  }
+
+  onMessage = (evt: MessageEvent<Pikchr.TAnyMessage>) => {
+    const { type, data } = evt.data;
+    let renderPromise: PromiseDelegate<Pikchr.IRenderResponseData> | null;
+    switch (type) {
+      case 'pikchr-ready':
+        this._ready.resolve(void 0);
+        break;
+      case 'pikchr':
+        if (data.hasOwnProperty('result')) {
+          renderPromise = this._renderPromises.get(data.pikchr) || null;
+          if (renderPromise) {
+            renderPromise.resolve(data as any as Pikchr.IRenderResponseData);
+            this._renderPromises.delete(data.pikchr);
+          } else {
+            console.warn('Unepected pikchr result', evt);
+          }
+        }
+        break;
+    }
+  };
+
+  private _worker: Worker | null = null;
+}
+
+export namespace Pikchr {
+  let instance: _Pikchr | null = null;
+
+  export type IMessageType =
+    | 'module'
+    | 'pikchr-ready'
+    | 'pikchr'
+    | 'status'
+    | 'working';
+
+  export interface IMessage {
+    type: IMessageType;
+    data: any;
+  }
+
+  export interface IRenderRequestMessage extends IMessage {
+    type: 'pikchr';
+    data: IRenderRequestData;
+  }
+
+  export interface IRenderRequestData {
+    pikchr: string;
+    darkMode?: boolean;
+    cssClass?: string;
+  }
+
+  export interface IRenderResponseMessage extends IMessage {
+    type: 'pikchr';
+    data: IRenderResponseData;
+  }
+
+  export interface IRenderResponseData {
+    pikchr: string;
+    height: number;
+    width: number;
+    isError: boolean;
+    result: string;
+  }
+
+  export interface IReadyMessage extends IMessage {
+    type: 'pikchr-ready';
+  }
+
+  export type TAnyMessage =
+    | IReadyMessage
+    | IRenderRequestMessage
+    | IRenderResponseMessage;
+
+  export interface IStatusData {
+    step: number;
+    text: string;
+  }
+
+  export type TPikchrFormat = 'img' | 'svg';
+
+  export interface IRenderOptions extends IRenderRequestData {
+    tag?: TPikchrFormat;
+  }
+
+  export interface IPikchr {
+    render(options: IRenderOptions): Promise<string>;
+  }
+
+  export interface IOptions {
+    // nothing here yet...
+  }
+
+  export function initialize(options?: IOptions): IPikchr {
+    if (instance == null) {
+      instance = new _Pikchr(options);
+    }
+    return instance;
+  }
 }
 
 // TODO: find a better source of these
