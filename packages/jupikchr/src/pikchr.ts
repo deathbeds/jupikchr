@@ -2,7 +2,7 @@
 import { PromiseDelegate } from '@lumino/coreutils';
 
 import * as URLS from './_pikchr_urls';
-import { JP_UI_FONT_FAMILY } from './tokens';
+import { EMOJI, JP_UI_FONT_FAMILY } from './tokens';
 
 class _Pikchr implements Pikchr.IPikchr {
   private _ready = new PromiseDelegate<void>();
@@ -15,15 +15,24 @@ class _Pikchr implements Pikchr.IPikchr {
     // nothing here yet
   }
 
-  async render(options: Pikchr.IRenderOptions): Promise<string> {
+  async initWorker(force: boolean = false) {
     let { _worker } = this;
-
-    if (!_worker) {
+    if (!_worker || force) {
+      if (force) {
+        if (this._worker) {
+          this._worker.terminate();
+          this._worker = null;
+        }
+        this._ready = new PromiseDelegate();
+      }
       this._worker = _worker = new Worker(URLS.WORKER_JS_URL.default);
       _worker.onmessage = this.onMessage;
     }
-
     await this._ready.promise;
+  }
+
+  async render(options: Pikchr.IRenderOptions): Promise<string> {
+    this.initWorker();
 
     let promise = this._renderPromises.get(options.pikchr);
 
@@ -96,9 +105,31 @@ class _Pikchr implements Pikchr.IPikchr {
             renderPromise.resolve(data as any as Pikchr.IRenderResponseData);
             this._renderPromises.delete(data.pikchr);
           } else {
-            console.warn('Unepected pikchr result', evt);
+            console.warn(`${EMOJI} unepected result`, data);
           }
         }
+        break;
+      case 'module':
+        switch (data.type) {
+          case 'status':
+            const { text } = data.data;
+            if (
+              text &&
+              (text.includes('Exception thrown') || text.includes('Aborted'))
+            ) {
+              console.warn(`${EMOJI} worker failed, restarting`, data.data);
+              this.initWorker(true);
+            }
+        }
+        break;
+      case 'stderr':
+        console.warn(`${EMOJI} stderr`, data);
+        break;
+      case 'working':
+      case 'module':
+        break;
+      default:
+        console.info(`${EMOJI} unhandled message`, type, data);
         break;
     }
   };
@@ -114,7 +145,8 @@ export namespace Pikchr {
     | 'pikchr-ready'
     | 'pikchr'
     | 'status'
-    | 'working';
+    | 'working'
+    | 'stderr';
 
   export interface IMessage {
     type: IMessageType;
@@ -149,10 +181,36 @@ export namespace Pikchr {
     type: 'pikchr-ready';
   }
 
+  export interface IModuleMessage extends IMessage {
+    type: 'module';
+    data: IModuleReponseData;
+  }
+
+  export interface IModuleReponseData {
+    type: 'status';
+    data: {
+      step: number;
+      text: string | null;
+    };
+  }
+
+  export interface IWorkingMessage extends IMessage {
+    type: 'working';
+    data: string;
+  }
+
+  export interface IStderrMessage extends IMessage {
+    type: 'stderr';
+    data: string[];
+  }
+
   export type TAnyMessage =
     | IReadyMessage
     | IRenderRequestMessage
-    | IRenderResponseMessage;
+    | IRenderResponseMessage
+    | IWorkingMessage
+    | IModuleMessage
+    | IStderrMessage;
 
   export interface IStatusData {
     step: number;

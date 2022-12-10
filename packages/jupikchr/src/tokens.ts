@@ -30,3 +30,5 @@ export namespace CommandIDs {
   export const fit = 'pikchr:fit';
   export const img = 'pikchr:img';
 }
+
+export const EMOJI = '🖼️';
