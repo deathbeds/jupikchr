@@ -8,7 +8,7 @@ dependencies:
   - python >=3.8,<3.12
   - doit-with-toml
   - flit
-  - fossil >=2.20
+  - twine
   # lab
   - ipydrawio
   - ipywidgets
