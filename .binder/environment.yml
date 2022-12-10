@@ -8,6 +8,7 @@ dependencies:
   - python >=3.8,<3.12
   - doit-with-toml
   - flit
+  - fossil >=2.20
   # lab
   - ipydrawio
   - ipywidgets
@@ -28,5 +29,6 @@ dependencies:
   # lite
   - pkginfo
   - pip
+  - python-libarchive-c
   - pip:
-      - jupyterlite ==0.1.0b14
+      - jupyterlite ==0.1.0b15

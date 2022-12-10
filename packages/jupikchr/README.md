@@ -69,8 +69,8 @@ conda install -c conda-forge jupikchr "jupyterlab>=3.4,<4"
     - these are vendored directly from [fossil]'s [pikchrshow]
   - the resulting HTML is either displayed directly, or embedded inside a portable `img`
     tag
-    - in the case of rich outputs, the `text/html` display type is also stored
-      inside the output as a fallback, e.g. for `nbconvert`
+    - in the case of rich outputs, the `text/html` display type is also stored inside
+      the output as a fallback, e.g. for `nbconvert`
 
 [fossil]: https://fossil-scm.org
 [pikchrshow]: https://fossil-scm.org/home/pikchrshow

@@ -1,76 +1,257 @@
-import {
-  JP_UI_FONT_FAMILY,
-  RE_VIEWBOX,
-  PIKCHR_DARK_MODE,
-  TPikchrFormat,
-} from './tokens';
-
+/** A wrapper class for the pikchr worker */
 import { PromiseDelegate } from '@lumino/coreutils';
 
-import pikchrWasm from 'pikchr-wasm';
+import * as URLS from './_pikchr_urls';
+import { EMOJI, JP_UI_FONT_FAMILY } from './tokens';
 
-let initializing: PromiseDelegate<void> | null = null;
+class _Pikchr implements Pikchr.IPikchr {
+  private _ready = new PromiseDelegate<void>();
+  private _renderPromises = new Map<
+    string,
+    PromiseDelegate<Pikchr.IRenderResponseData>
+  >();
 
-export async function initialize(): Promise<void> {
-  if (initializing) {
-    return initializing.promise;
+  constructor(options?: Pikchr.IOptions) {
+    // nothing here yet
   }
-  initializing = new PromiseDelegate();
-  await pikchrWasm.loadWASM();
-  initializing.resolve(void 0);
-}
 
-export interface IOptions {
-  tag?: TPikchrFormat;
-  dark?: boolean;
-}
-
-export function render(content: string, options: IOptions = {}): string {
-  let { dark, tag } = options;
-  if (dark == null) {
-    dark = document.body.dataset.jpThemeLight === 'false';
-  }
-  const flags = dark ? PIKCHR_DARK_MODE : 0;
-
-  let result = pikchrWasm.render(content.trim(), 'pikchr', flags);
-
-  if (result.includes('<svg')) {
-    // sanitize
-    switch (options.tag) {
-      case undefined:
-      case null:
-      case 'img':
-        result = `${HEADER}${result}`;
-        const fontFamily = getComputedStyle(document.body).getPropertyValue(
-          JP_UI_FONT_FAMILY
-        );
-        // defaults to serif, re-use the current lab stack
-        result = result.replace(
-          '</svg>',
-          `<style>text { font-family: ${fontFamily}; }</style></svg>`
-        );
-        const viewBox = result.match(RE_VIEWBOX);
-        const styles = [];
-        let dimensions = '';
-        if (viewBox != null) {
-          styles.push(`max-width:${viewBox[3]}px`, `max-height:${viewBox[4]}px`);
-          dimensions = `height="${viewBox[3]}" height="${viewBox[4]}"`;
+  async initWorker(force: boolean = false) {
+    let { _worker } = this;
+    if (!_worker || force) {
+      if (force) {
+        if (this._worker) {
+          this._worker.terminate();
+          this._worker = null;
         }
-        // markdown-it strips svg
-        result = `<img
-              class="pikchr"
-              ${dimensions}
-              style="${styles.join(';')}"
-              src="${`data:image/svg+xml,${encodeURIComponent(result)}`}"
-            />`;
+        this._ready = new PromiseDelegate();
+      }
+      this._worker = _worker = new Worker(URLS.WORKER_JS_URL.default);
+      _worker.onmessage = this.onMessage;
+    }
+    await this._ready.promise;
+  }
+
+  async render(options: Pikchr.IRenderOptions): Promise<string> {
+    this.initWorker();
+
+    let { pikchr } = options;
+
+    let promise = this._renderPromises.get(pikchr);
+
+    if (promise == null) {
+      promise = new PromiseDelegate<Pikchr.IRenderResponseData>();
+      this._renderPromises.set(pikchr, promise);
+      this.postRender(options);
+    }
+
+    const response = await promise.promise;
+
+    if (options.tag === 'img') {
+      return this.transformToImg(response, options);
+    }
+    const { result, height, width } = response;
+    return result.replace(
+      '<svg ',
+      `<svg style="max-width:${width}px;max-height:${height}px;" `
+    );
+  }
+
+  postRender(options: Pikchr.IRenderOptions) {
+    const data = {
+      ...options,
+      ...(options.darkMode == null
+        ? {
+            darkMode: document.body.dataset.jpThemeLight === 'false',
+          }
+        : {}),
+    };
+    this.postMessage({ type: 'pikchr', data });
+  }
+
+  transformToImg(
+    data: Pikchr.IRenderResponseData,
+    options: Pikchr.IRenderOptions
+  ): string {
+    let { result, width, height } = data;
+    const match = data.result.match(/(<svg[\s\S]*svg>)/m);
+    if (match == null) {
+      return result;
+    }
+    result = `${HEADER}${match[1]}`;
+    const fontFamily = getComputedStyle(document.body).getPropertyValue(
+      JP_UI_FONT_FAMILY
+    );
+    result = result.replace(
+      '</svg>',
+      `<style>text { font-family: ${fontFamily}; font-size: 14px; }</style></svg>`
+    );
+    const dimensions = options.addDimensions
+      ? `width="${width}" height="${height}"`
+      : '';
+    result = `<img ${dimensions}
+          class="pikchr"
+          style="max-width:${width}px;max-height:${height}px;"
+          src="${`data:image/svg+xml,${encodeURIComponent(result)}`}"
+        />`;
+    return result;
+  }
+
+  postMessage(message: Pikchr.IMessage) {
+    this._worker!.postMessage(message);
+  }
+
+  onMessage = async (evt: MessageEvent<Pikchr.TAnyMessage>) => {
+    const { type, data } = evt.data;
+    let renderPromise: PromiseDelegate<Pikchr.IRenderResponseData> | null;
+    switch (type) {
+      case 'pikchr-ready':
+        this._ready.resolve(void 0);
         break;
-      case 'svg':
+      case 'pikchr':
+        if (data.hasOwnProperty('result')) {
+          const { pikchr } = data;
+          renderPromise = this._renderPromises.get(pikchr) || null;
+          if (renderPromise) {
+            renderPromise.resolve(data as any as Pikchr.IRenderResponseData);
+            this._renderPromises.delete(pikchr);
+          } else {
+            console.warn(`${EMOJI} unepected result`, data);
+          }
+        }
+        break;
+      case 'module':
+        switch (data.type) {
+          case 'status':
+            const { text } = data.data;
+            if (
+              text &&
+              (text.includes('Exception thrown') || text.includes('Aborted'))
+            ) {
+              console.warn(`${EMOJI} worker failed, restarting`, data.data);
+              await this.initWorker(true);
+              for (const [key, promise] of this._renderPromises.entries()) {
+                promise.reject(`${EMOJI} worker restarted`);
+                this._renderPromises.delete(key);
+              }
+            }
+        }
+        break;
+      case 'stderr':
+        console.warn(`${EMOJI} stderr`, data);
+        break;
+      case 'working':
+      case 'module':
         break;
       default:
-        result = `<pre>Can't render as <${tag}></pre>`;
+        console.info(`${EMOJI} unhandled message`, type, data);
+        break;
     }
+  };
+
+  private _worker: Worker | null = null;
+}
+
+export namespace Pikchr {
+  let instance: _Pikchr | null = null;
+
+  export type IMessageType =
+    | 'module'
+    | 'pikchr-ready'
+    | 'pikchr'
+    | 'status'
+    | 'working'
+    | 'stderr';
+
+  export interface IMessage {
+    type: IMessageType;
+    data: any;
   }
-  return result;
+
+  export interface IRenderRequestMessage extends IMessage {
+    type: 'pikchr';
+    data: IRenderRequestData;
+  }
+
+  export interface IRenderRequestData {
+    pikchr: string;
+    darkMode?: boolean;
+    cssClass?: string;
+  }
+
+  export interface IRenderResponseMessage extends IMessage {
+    type: 'pikchr';
+    data: IRenderResponseData;
+  }
+
+  export interface IRenderResponseData {
+    pikchr: string;
+    height: number;
+    width: number;
+    isError: boolean;
+    result: string;
+  }
+
+  export interface IReadyMessage extends IMessage {
+    type: 'pikchr-ready';
+  }
+
+  export interface IModuleMessage extends IMessage {
+    type: 'module';
+    data: IModuleReponseData;
+  }
+
+  export interface IModuleReponseData {
+    type: 'status';
+    data: {
+      step: number;
+      text: string | null;
+    };
+  }
+
+  export interface IWorkingMessage extends IMessage {
+    type: 'working';
+    data: string;
+  }
+
+  export interface IStderrMessage extends IMessage {
+    type: 'stderr';
+    data: string[];
+  }
+
+  export type TAnyMessage =
+    | IReadyMessage
+    | IRenderRequestMessage
+    | IRenderResponseMessage
+    | IWorkingMessage
+    | IModuleMessage
+    | IStderrMessage;
+
+  export interface IStatusData {
+    step: number;
+    text: string;
+  }
+
+  export type TPikchrFormat = 'img' | 'svg';
+
+  export interface IRenderOptions extends IRenderRequestData {
+    tag?: TPikchrFormat;
+    addDimensions?: boolean;
+  }
+
+  export interface IPikchr {
+    render(options: IRenderOptions): Promise<string>;
+  }
+
+  export interface IOptions {
+    // nothing here yet...
+  }
+
+  export function initialize(options?: IOptions): IPikchr {
+    if (instance == null) {
+      instance = new _Pikchr(options);
+    }
+    return instance;
+  }
 }
 
 // TODO: find a better source of these

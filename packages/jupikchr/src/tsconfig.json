@@ -6,5 +6,5 @@
   },
   "extends": "../../tsconfigbase",
   "include": ["./**/*"],
-  "references": [{ "path": "../" }]
+  "references": [{ "path": "../" }, { "path": "../../codemirror-pikchr" }]
 }

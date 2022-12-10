@@ -102,4 +102,4 @@ html_sidebars = {"**": []}
 
 
 def setup(app):
-    subprocess.check_call(["doit", "js:docs:lite"], cwd=ROOT)
+    subprocess.check_call(["doit", "lite:build"], cwd=ROOT)

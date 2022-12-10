@@ -1,5 +1,9 @@
 # contributing
 
+> PRs welcome! Help is needed on both the Python and TypeScript side to bring `pickhr`
+> diagrams to more of the Jupyter ecosystem! See the [roadmap] for known tasks.
+
+[roadmap]: https://github.com/deathbeds/jupikchr/blob/main/ROADMAP.md
 
 ## setup
 

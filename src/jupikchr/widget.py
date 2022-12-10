@@ -29,6 +29,9 @@ class Pikchr(PikchrBase, W.DOMWidget):
     source = T.Unicode("", help="a pikchr string").tag(sync=True)
     value = T.Unicode("", help="an svg string").tag(sync=True)
     tag = T.Unicode("img", help="the HTML tag to generate").tag(sync=True)
-    dark = T.Bool(None, help="invert colors for dark themes", allow_none=True).tag(
+    dark_mode = T.Bool(None, help="invert colors for dark themes", allow_none=True).tag(
+        sync=True
+    )
+    css_class = T.Unicode(alow_none=True, help="add a class to the svg tag").tag(
         sync=True
     )

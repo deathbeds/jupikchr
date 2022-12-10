@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "jupikchr"
-version = "0.1.0"
+version = "0.2.0"
 description = "pikchr text-based diagrams for JupyterLab, etc."
 authors = [
     {name = "jupikchr contributors", email = "deathbeds@googlegroups.com"},
@@ -23,7 +23,6 @@ classifiers = [
 requires-python = ">=3.7"
 dependencies = [
     "ipywidgets >=7,<9",
-    "jupyterlab >=3.3,<4",
     "jupyterlab-markup >=2.0.0",
 ]
 

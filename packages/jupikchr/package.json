@@ -1,6 +1,6 @@
 {
   "name": "@deathbeds/jupikchr",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "pikchr text-based diagrams for JupyterLab, etc.",
   "license": "BSD-3-Clause",
   "author": "jupikchr contributors",
@@ -13,6 +13,9 @@
     "url": "https://github.com/deathbeds/jupikchr/issues"
   },
   "main": "lib/index.js",
+  "files": [
+    "{lib,vendor,style}/**/*"
+  ],
   "scripts": {
     "dist:npm": "cd ../../dist && npm pack ../packages/jupikchr",
     "labextension:build": "jupyter labextension build .",
@@ -22,11 +25,12 @@
   "types": "lib/index.d.ts",
   "dependencies": {
     "@agoose77/jupyterlab-markup": "^1.0.0 || ^2.0.0",
+    "@deathbeds/codemirror-pikchr": "^0.2.0",
     "@jupyter-widgets/base": "^4.0.0 || ^6.0.0",
     "@jupyter-widgets/controls": "^3.0.0 || ^5.0.0",
     "@jupyter-widgets/jupyterlab-manager": "^3.0.0 || ^5.0.0",
     "@jupyterlab/application": "^3.4.0",
-    "pikchr-wasm": "^2.0.0"
+    "@jupyterlab/launcher": "^3.4.0"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^3.4.8",
@@ -44,9 +48,6 @@
         "bundled": false,
         "singleton": true
       },
-      "pikchr-wasm": {
-        "bundled": true
-      },
       "@jupyter-widgets/base": {
         "bundled": false,
         "singleton": true
@@ -54,6 +55,9 @@
       "@jupyter-widgets/controls": {
         "bundled": false,
         "singleton": true
+      },
+      "@deathbeds/codemirror-pikchr": {
+        "bundled": true
       }
     }
   }
