@@ -4,7 +4,7 @@
     "build:ext": "lerna run labextension:build",
     "build:lib": "lerna run build",
     "dist:npm": "lerna run dist:npm",
-    "dist:py": "flit build",
+    "dist:py": "flit --debug build",
     "docs:sphinx": "sphinx-build -b html docs build/docs",
     "fix:js:package": "prettier-package-json --write package.json \"packages/*/package.json\"",
     "fix:js:prettier": "jlpm prettier:base --write --list-different",
