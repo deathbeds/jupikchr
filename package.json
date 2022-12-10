@@ -199,12 +199,13 @@
           {
             "ref": "build:lib/file_dep"
           },
-          "packages/*/*.json",
-          "packages/*/*.md",
           ".binder/*",
           ".github/**/*",
           "*.json",
-          "*.md"
+          "*.md",
+          "docs/*.md",
+          "packages/*/*.json",
+          "packages/*/*.md"
         ],
         "targets": [
           "build/.prettiercache"

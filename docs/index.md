@@ -17,14 +17,11 @@
 ```{include} ../ROADMAP.md
 ```
 
-
 ```{include} ../CONTRIBUTING.md
-
 ```
 
 ```{include} ../CODE_OF_CONDUCT.md
 ```
-
 
 # open source
 ```{include} ../LICENSE.txt
