@@ -17,3 +17,9 @@ node_modules/
 untitled*
 Untitled*
 vendor/
+
+# binder
+.bash_logout
+.bashrc
+.conda/
+.profile
