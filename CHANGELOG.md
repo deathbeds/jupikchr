@@ -12,6 +12,7 @@
 - document
   - add toolbar with buttons for `fit` and `tag`
 - mime
+  - fallback `text/html` outputs get populated after rendering in the browser
   - metadata
     - rename `dark` to `darkMode`
     - add `cssClass`
