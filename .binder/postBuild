@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 set -eux
-doit binder docs && doit binder docs
+doit dist || doit dist
+doit binder docs || doit binder docs
