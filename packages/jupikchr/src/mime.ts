@@ -8,6 +8,7 @@ import { Pikchr } from './pikchr';
 import { CSS, DOT_PIKCHR, NAME, NS } from './tokens';
 
 export const MIME_TYPE = 'text/x-pikchr';
+export const MIME_HTML = 'text/html';
 
 export class RenderedPikchr extends Widget implements IRenderMime.IRenderer {
   private _mimeType: string;
@@ -58,8 +59,12 @@ export class RenderedPikchr extends Widget implements IRenderMime.IRenderer {
     if (this._forceImg != null) {
       meta.tag = this._forceImg ? 'img' : 'svg';
     }
-    this.node.innerHTML = await this._pikchr.render({ pikchr, ...meta });
+    const result = await this._pikchr.render({ pikchr, ...meta });
+    this.node.innerHTML = result;
     this._lastRendered = model;
+    if (!model.data[MIME_HTML]) {
+    }
+    model.setData({ data: { ...model.data, [MIME_HTML]: result } });
     this.update();
   }
 

@@ -4,8 +4,6 @@
 | :-----------------: | :-----------------------------------------------: | :-----------------: | :-------------------------------------------------: |
 | [![rtd-badge]][rtd] | [![pypi-badge]][pypi]<br/>[![conda-badge]][conda] | [![npm-badge]][npm] | [![binder-badge]][binder]<br/>[![lite-badge]][lite] |
 
-[![Binder][binder-badge]][binder] [![docs][docs-badge]][docs]
-
 > [pikchr] text-based diagrams for [JupyterLab], etc.
 
 [pikchr]: https://pikchr.org
@@ -33,7 +31,7 @@
   - _Open With... ⯈ Pikchr_ for `.pikchr` text documents
   - `jupickhr.widget.Pikchr` for live updating
 - generates:
-  - portable `img` tags (with fixed up special entities)
+  - portable `img` tags (with fixed up special entities and fonts)
     - these can be drag-and-dropped directly into other tools, like [ipydrawio]
   - inline SVG
 - light, dark and autodetected themes
@@ -59,5 +57,23 @@ conda install -c conda-forge jupikchr "jupyterlab>=3.4,<4"
 > If you want to integrate with, or just hack on, `jupikchr` itself, try the
 > [development installation steps][contributing].
 
+## how it works
+
+- in the browser
+  - `pikchr` source and metadata is found:
+    - in Markdown by [jupyterlab-markup]
+    - in `text/x-pikchr` rich display outputs
+    - in the Jupyter widget
+  - a WebWorker is started which loads the `pickchr` C executable, compiled to
+    WebAssembly
+    - these are vendored directly from [fossil]'s [pikchrshow]
+  - the resulting HTML is either displayed directly, or embedded inside a portable `img`
+    tag
+    - in the case of rich outputs, the `text/html` display type is also stored
+      inside the output as a fallback, e.g. for `nbconvert`
+
+[fossil]: https://fossil-scm.org
+[pikchrshow]: https://fossil-scm.org/home/pikchrshow
+[jupyterlab-markup]: https://github.com/agoose77/jupyterlab-markup
 [contributing]: https://github.com/deathbeds/jupikchr/blob/main/CONTRIBUTING.md
 [ipydrawio]: https://github.com/deathbeds/ipydrawio

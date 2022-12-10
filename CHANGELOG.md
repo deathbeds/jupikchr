@@ -9,6 +9,8 @@
 - widget
   - rename `dark` to `dark_mode`
   - add `css_class`
+- document
+  - add toolbar with buttons for `fit` and `tag`
 - mime
   - metadata
     - rename `dark` to `darkMode`
