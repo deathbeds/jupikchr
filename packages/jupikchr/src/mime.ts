@@ -13,7 +13,7 @@ export const MIME_HTML = 'text/html';
 export class RenderedPikchr extends Widget implements IRenderMime.IRenderer {
   private _mimeType: string;
   private _pikchr: Pikchr.IPikchr;
-  private _lastRendered: IRenderMime.IMimeModel | null = null;
+  private _lastModel: IRenderMime.IMimeModel | null = null;
   private _forceImg: boolean | null = null;
   private _fit: boolean = false;
 
@@ -32,12 +32,12 @@ export class RenderedPikchr extends Widget implements IRenderMime.IRenderer {
   }
 
   async toggleImage(): Promise<void> {
-    const { _lastRendered } = this;
-    if (!_lastRendered) {
+    const { _lastModel } = this;
+    if (!_lastModel) {
       return;
     }
     this._forceImg = !this._forceImg;
-    return await this.renderModel(_lastRendered);
+    return await this.renderModel(_lastModel);
   }
 
   toggleFit() {
@@ -53,6 +53,9 @@ export class RenderedPikchr extends Widget implements IRenderMime.IRenderer {
    * Render into this widget's node.
    */
   async renderModel(model: IRenderMime.IMimeModel): Promise<void> {
+    if (model === this._lastModel) {
+      return;
+    }
     this.addClass(CSS.DOCUMENT);
     const pikchr = `${model.data[this._mimeType]}`;
     const meta = (model.metadata[this._mimeType] as any) || {};
@@ -61,10 +64,10 @@ export class RenderedPikchr extends Widget implements IRenderMime.IRenderer {
     }
     const result = await this._pikchr.render({ pikchr, ...meta });
     this.node.innerHTML = result;
-    this._lastRendered = model;
+    this._lastModel = model;
     if (!model.data[MIME_HTML]) {
+      model.setData({ data: { ...model.data, [MIME_HTML]: result } });
     }
-    model.setData({ data: { ...model.data, [MIME_HTML]: result } });
     this.update();
   }
 

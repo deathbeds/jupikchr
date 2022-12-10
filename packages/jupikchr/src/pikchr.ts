@@ -34,29 +34,20 @@ class _Pikchr implements Pikchr.IPikchr {
   async render(options: Pikchr.IRenderOptions): Promise<string> {
     this.initWorker();
 
-    let promise = this._renderPromises.get(options.pikchr);
+    let { pikchr } = options;
+
+    let promise = this._renderPromises.get(pikchr);
 
     if (promise == null) {
       promise = new PromiseDelegate<Pikchr.IRenderResponseData>();
-      this._renderPromises.set(options.pikchr, promise);
-      const data = {
-        ...options,
-        ...(options.darkMode == null
-          ? {
-              darkMode: document.body.dataset.jpThemeLight === 'false',
-            }
-          : {}),
-      };
-      this.postMessage({
-        type: 'pikchr',
-        data,
-      });
+      this._renderPromises.set(pikchr, promise);
+      this.postRender(options);
     }
 
     const response = await promise.promise;
 
     if (options.tag === 'img') {
-      return this.transformToImg(response);
+      return this.transformToImg(response, options);
     }
     const { result, height, width } = response;
     return result.replace(
@@ -65,7 +56,22 @@ class _Pikchr implements Pikchr.IPikchr {
     );
   }
 
-  transformToImg(data: Pikchr.IRenderResponseData): string {
+  postRender(options: Pikchr.IRenderOptions) {
+    const data = {
+      ...options,
+      ...(options.darkMode == null
+        ? {
+            darkMode: document.body.dataset.jpThemeLight === 'false',
+          }
+        : {}),
+    };
+    this.postMessage({ type: 'pikchr', data });
+  }
+
+  transformToImg(
+    data: Pikchr.IRenderResponseData,
+    options: Pikchr.IRenderOptions
+  ): string {
     let { result, width, height } = data;
     const match = data.result.match(/(<svg[\s\S]*svg>)/m);
     if (match == null) {
@@ -79,7 +85,10 @@ class _Pikchr implements Pikchr.IPikchr {
       '</svg>',
       `<style>text { font-family: ${fontFamily}; font-size: 14px; }</style></svg>`
     );
-    result = `<img
+    const dimensions = options.addDimensions
+      ? `width="${width}" height="${height}"`
+      : '';
+    result = `<img ${dimensions}
           class="pikchr"
           style="max-width:${width}px;max-height:${height}px;"
           src="${`data:image/svg+xml,${encodeURIComponent(result)}`}"
@@ -91,7 +100,7 @@ class _Pikchr implements Pikchr.IPikchr {
     this._worker!.postMessage(message);
   }
 
-  onMessage = (evt: MessageEvent<Pikchr.TAnyMessage>) => {
+  onMessage = async (evt: MessageEvent<Pikchr.TAnyMessage>) => {
     const { type, data } = evt.data;
     let renderPromise: PromiseDelegate<Pikchr.IRenderResponseData> | null;
     switch (type) {
@@ -100,10 +109,11 @@ class _Pikchr implements Pikchr.IPikchr {
         break;
       case 'pikchr':
         if (data.hasOwnProperty('result')) {
-          renderPromise = this._renderPromises.get(data.pikchr) || null;
+          const { pikchr } = data;
+          renderPromise = this._renderPromises.get(pikchr) || null;
           if (renderPromise) {
             renderPromise.resolve(data as any as Pikchr.IRenderResponseData);
-            this._renderPromises.delete(data.pikchr);
+            this._renderPromises.delete(pikchr);
           } else {
             console.warn(`${EMOJI} unepected result`, data);
           }
@@ -118,7 +128,11 @@ class _Pikchr implements Pikchr.IPikchr {
               (text.includes('Exception thrown') || text.includes('Aborted'))
             ) {
               console.warn(`${EMOJI} worker failed, restarting`, data.data);
-              this.initWorker(true);
+              await this.initWorker(true);
+              for (const [key, promise] of this._renderPromises.entries()) {
+                promise.reject(`${EMOJI} worker restarted`);
+                this._renderPromises.delete(key);
+              }
             }
         }
         break;
@@ -221,6 +235,7 @@ export namespace Pikchr {
 
   export interface IRenderOptions extends IRenderRequestData {
     tag?: TPikchrFormat;
+    addDimensions?: boolean;
   }
 
   export interface IPikchr {
