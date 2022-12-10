@@ -57,4 +57,4 @@ conda install -c conda-forge jupikchr "jupyterlab>=3.4,<4"
 > If you want to integrate with, or just hack on, `jupikchr` itself, try the
 > [development installation steps][contributing].
 
-[contributing]: https://github.com/deathbeds/jupikchr
+[contributing]: https://github.com/deathbeds/jupikchr/blob/main/CONTRIBUTING.md
