@@ -23,6 +23,11 @@
       "packages/*"
     ]
   },
+  "resolutions": {
+    "verdaccio": "file:packages/_not_a_package",
+    "typescript": "~4.9.3",
+    "prettier": "^2.8.0"
+  },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.0.0",
     "lerna": "^6.0.3",
