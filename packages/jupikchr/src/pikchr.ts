@@ -30,16 +30,17 @@ class _Pikchr implements Pikchr.IPikchr {
     if (promise == null) {
       promise = new PromiseDelegate<Pikchr.IRenderResponseData>();
       this._renderPromises.set(options.pikchr, promise);
+      const data = {
+        ...options,
+        ...(options.darkMode == null
+          ? {
+              darkMode: document.body.dataset.jpThemeLight === 'false',
+            }
+          : {}),
+      };
       this.postMessage({
         type: 'pikchr',
-        data: {
-          ...options,
-          ...(options.darkMode == null
-            ? {
-                darkMode: document.body.dataset.jpThemeLight === 'false',
-              }
-            : {}),
-        },
+        data,
       });
     }
 
@@ -48,12 +49,15 @@ class _Pikchr implements Pikchr.IPikchr {
     if (options.tag === 'img') {
       return this.transformToImg(response);
     }
-
-    return response.result;
+    const { result, height, width } = response;
+    return result.replace(
+      '<svg ',
+      `<svg style="max-width:${width}px;max-height:${height}px;" `
+    );
   }
 
   transformToImg(data: Pikchr.IRenderResponseData): string {
-    let { result } = data;
+    let { result, width, height } = data;
     const match = data.result.match(/(<svg[\s\S]*svg>)/m);
     if (match == null) {
       return result;
@@ -64,17 +68,11 @@ class _Pikchr implements Pikchr.IPikchr {
     );
     result = result.replace(
       '</svg>',
-      `<style>text { font-family: ${fontFamily}; }</style></svg>`
+      `<style>text { font-family: ${fontFamily}; font-size: 14px; }</style></svg>`
     );
-    const styles = [];
-    let dimensions = '';
-    styles.push(`max-width:${data.width}px`, `max-height:${data.height}px`);
-    dimensions = `height="${data.width}" height="${data.height}"`;
-    // markdown-it strips svg
     result = `<img
           class="pikchr"
-          ${dimensions}
-          style="${styles.join(';')}"
+          style="max-width:${width}px;max-height:${height}px;"
           src="${`data:image/svg+xml,${encodeURIComponent(result)}`}"
         />`;
     return result;

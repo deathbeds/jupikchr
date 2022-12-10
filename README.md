@@ -30,11 +30,13 @@
 - supports writing and rendering `pikchr` in:
   - `pikchr` fenced code blocks in `.ipynb` cells and `.md` documents
   - rich display for the `text/x-pikchr` MIME type
-  - _Open With... ⯈ Pikchr_ for `.pikchr` documents
+  - _Open With... ⯈ Pikchr_ for `.pikchr` text documents
   - `jupickhr.widget.Pikchr` for live updating
 - generates:
   - portable `img` tags (with fixed up special entities)
-- light, dark and autodected themes
+    - these can be drag-and-dropped directly into other tools, like [ipydrawio]
+  - inline SVG
+- light, dark and autodetected themes
 
 ## install
 
@@ -58,3 +60,4 @@ conda install -c conda-forge jupikchr "jupyterlab>=3.4,<4"
 > [development installation steps][contributing].
 
 [contributing]: https://github.com/deathbeds/jupikchr/blob/main/CONTRIBUTING.md
+[ipydrawio]: https://github.com/deathbeds/ipydrawio
