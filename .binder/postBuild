@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -eux
-doit dist || doit dist
+doit dist || doit dist || git status
 doit binder docs || doit binder docs
