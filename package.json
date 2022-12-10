@@ -26,7 +26,8 @@
   "resolutions": {
     "verdaccio": "file:packages/_not_a_package",
     "typescript": "~4.9.3",
-    "prettier": "^2.8.0"
+    "prettier": "^2.8.0",
+    "d3-color": "^3.0.1"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.0.0",
