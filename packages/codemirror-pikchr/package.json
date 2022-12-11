@@ -1,6 +1,6 @@
 {
   "name": "@deathbeds/codemirror-pikchr",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "CodeMirror syntax highlithing for pikchr text-based diagrams",
   "license": "BSD-3-Clause",
   "author": "jupikchr contributors",
