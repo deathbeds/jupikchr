@@ -329,10 +329,10 @@
     "@jridgewell/trace-mapping" "0.3.9"
 
 "@deathbeds/jupikchr@file:packages/jupikchr":
-  version "0.2.0"
+  version "0.2.1"
   dependencies:
     "@agoose77/jupyterlab-markup" "^1.0.0 || ^2.0.0"
-    "@deathbeds/codemirror-pikchr" "^0.2.0"
+    "@deathbeds/codemirror-pikchr" "^0.2.1"
     "@jupyter-widgets/base" "^4.0.0 || ^6.0.0"
     "@jupyter-widgets/controls" "^3.0.0 || ^5.0.0"
     "@jupyter-widgets/jupyterlab-manager" "^3.0.0 || ^5.0.0"

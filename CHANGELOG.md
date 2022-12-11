@@ -1,5 +1,9 @@
 # history
 
+## 0.2.1
+
+> TBD
+
 ## 0.2.0
 
 - removed dependency on `jupyterlab 3`

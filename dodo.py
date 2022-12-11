@@ -223,7 +223,10 @@ class U:  # tilities
 
         tasks = {}
         for prefix, js_tasks in js_grouped.items():
-            tasks[f"task_{prefix}"] = U.make_js_prefix_tasks(prefix, js_tasks)
+            global_name = f"task_{prefix}"
+            if global_name in globals():
+                raise ValueError(f"{global_name} is already defined")
+            tasks[global_name] = U.make_js_prefix_tasks(prefix, js_tasks)
         return tasks
 
     def template_pikchr_urls_ts():
@@ -362,7 +365,7 @@ def task_binder():
     )
 
 
-def task_dist():
+def task_release():
     file_dep = U.expand_paths(
         [*D.JS_TASKS["dist:npm"]["targets"], *D.JS_TASKS["dist:py"]["targets"]]
     )

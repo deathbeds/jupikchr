@@ -14,7 +14,7 @@ env:
   CI: '1'
 
   # our stuff
-  CACHE_EPOCH: '2'
+  CACHE_EPOCH: '3'
 
 jobs:
   build:
@@ -91,7 +91,7 @@ jobs:
         run: doit list --all --status
 
       - name: build
-        run: doit ${{ matrix.DOIT_N_BUILD }} dist || doit dist
+        run: doit ${{ matrix.DOIT_N_BUILD }} release || doit release
 
       - name: status
         run: doit list --all --status | sort
